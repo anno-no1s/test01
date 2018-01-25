@@ -2,90 +2,83 @@
 
 /**************************************************
 
-	2017年12月テスト 問1プログラム
+	2018年1月テスト 問1プログラム
 
 **************************************************/
 
-$apiKey = "UhuBsj54DbRnnHGQYaPywHmAi";
-$apiSecret = "e1zSaGoQorVKzyW5W7U8LaAmkUsf3nnjdIHCxh45Y03bnnBj86";
-$accessToken = "42566916-5CI2BDtmiUQdWFKtTY6ajgxmLlYjURI4ftW2K88h3";
-$accessTokenSecret = "YHfdFB1RJxIcHQ6XOriX0GZhmZmFpNmI5wegaBIRDflIU";
-$requestUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
-$requestMethod = 'GET';
+$requestUrl = 'https://premier.no1s.biz/';
+$cookieFile = './file.cookie';
+touch($cookieFile);
 
+$getData = requestData($requestUrl, 'GET', $cookieFile);
+$getData = changeHtmlToXml($getData);
+$csrfToken = (string) $getData->body->div[1]->div->div->form->div[0]->input[1]->attributes()->value;
 $requestOption = [
-    'screen_name' => '@realDonaldTrump',
-    'count'       => 10,
-    'tweet_mode'  => 'extended',
+    'email'     => 'micky.mouse@no1s.biz',
+    'password'  => 'micky',
+    '_csrfToken' => $csrfToken,
 ];
 
-$signatureKey = implode('&', [
-    rawurlencode($apiSecret), 
-    rawurlencode($accessTokenSecret)
-]);
+$page1 = getOutputData($requestUrl, $cookieFile, $requestOption);
+$page2 = getOutputData($requestUrl.'admin?page=2', $cookieFile, $requestOption);
+$page3 = getOutputData($requestUrl.'admin?page=3', $cookieFile, $requestOption);
+$outputData = array_merge($page1, $page2, $page3);
 
-$oauthParams = [
-    'oauth_token'            => $accessToken,
-    'oauth_consumer_key'     => $apiKey,
-    'oauth_signature_method' => 'HMAC-SHA1',
-    'oauth_timestamp'        => time(),
-    'oauth_nonce'            => microtime(),
-    'oauth_version'          => '1.0',
-];
+if($f = fopen('output.csv', 'w')){
+    foreach($outputData as $line){
+        fwrite($f, implode($line, ',') . ",\n");
+    }
+}
+fclose($f);
 
-$params = array_merge($requestOption, $oauthParams);
-ksort($params);
-$requestParams = http_build_query($params, '', '&');
-$requestParams = str_replace(['+', '%7E'], ['%20', '~'], $requestParams);
-$signatureData = implode('&', [
-    rawurlencode($requestMethod),
-    rawurlencode($requestUrl),
-    rawurlencode($requestParams)
-]);
-$hash = hash_hmac('sha1', $signatureData, $signatureKey, true);
-$signature = base64_encode($hash);
-$params['oauth_signature'] = $signature;
+function requestData($url, $method, $cookieFile, $option = null) {
+    $curl = curl_init() ;
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_HEADER, true);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
+    curl_setopt($curl, CURLOPT_COOKIEFILE, $cookieFile);
+    curl_setopt($curl, CURLOPT_COOKIEJAR, $cookieFile);
 
-$request_header = [
-    'Authorization: OAuth ' . http_build_query($params, '', ','),
-];
+    if ($option) {
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($option));
+    }
 
-if($requestOption) {
-    $requestUrl .= '?' . http_build_query($requestOption);
+    $response1 = curl_exec($curl);
+    $response2 = curl_getinfo($curl);
+    $errno = curl_errno($curl);
+    curl_close($curl);
+
+    if (CURLE_OK !== $errno) {
+        echo 'Curl error: ' . $errno;
+        exit;
+    }
+
+    return substr($response1, $response2['header_size']);
 }
 
-$curl = curl_init() ;
-curl_setopt($curl, CURLOPT_URL, $requestUrl);
-curl_setopt($curl, CURLOPT_HEADER, true);
-curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $requestMethod);
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_HTTPHEADER, $request_header);
-curl_setopt($curl, CURLOPT_TIMEOUT, 5);
-$response1 = curl_exec($curl);
-$response2 = curl_getinfo($curl);
-$errno = curl_errno($curl);
-curl_close($curl);
+function changeHtmlToXml($html) {
+    $domDocument = new DOMDocument();
+    @$domDocument->loadHTML($html);
+    $xmlString = $domDocument->saveXML();
 
-if (CURLE_OK !== $errno) {
-    echo 'Curl error: ' . $errno;
-    exit;
+    return simplexml_load_string($xmlString);
 }
 
-$json = substr($response1, $response2['header_size']);
-$array = json_decode($json, true);
-
-$view = array_map(function($ar) {
-    return [
-        'created_at' => date("Y年m月d日 H時i分s秒", strtotime($ar['created_at'])),
-        'text'       => $ar['full_text'],
-    ];
-}, $array);
-
-// 表示
-foreach ($view as $v) {
-    echo '<<< ' . $v['created_at'] . ' >>>', PHP_EOL;
-    echo $v['text'], PHP_EOL;
-    echo '----------------------------------------------------------------------', PHP_EOL;
+function getOutputData($url, $cookieFile, $requestOption) {
+    $postData = requestData($url, 'POST', $cookieFile, $requestOption);
+    $postData = changeHtmlToXml($postData);
+    $outputData = [];
+    foreach($postData->body->div[1]->div->div->table->tr as $tr){
+        if (isset($tr->td)) {
+            $outputData[] = array_map(function($td) {
+                return '"' . $td . '"';
+            }, (array) $tr->td);
+        }
+    }
+    return $outputData;
 }
-
