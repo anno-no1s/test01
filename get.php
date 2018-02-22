@@ -2,36 +2,43 @@
 
 /**************************************************
 
-	2018年1月テスト 問1プログラム
+	2018年2月テスト 問1プログラム
 
 **************************************************/
 
-$requestUrl = 'https://premier.no1s.biz/';
-$cookieFile = './file.cookie';
-touch($cookieFile);
+$requestUrl = 'https://api.qrserver.com/v1/create-qr-code/';
 
-$getData = requestData($requestUrl, 'GET', $cookieFile);
-$getData = changeHtmlToXml($getData);
-$csrfToken = (string) $getData->body->div[1]->div->div->form->div[0]->input[1]->attributes()->value;
 $requestOption = [
-    'email'     => 'micky.mouse@no1s.biz',
-    'password'  => 'micky',
-    '_csrfToken' => $csrfToken,
+    'data'   => '',
+    'size'   => '200x200',
+    'format' => 'ping'
 ];
 
-$page1 = getOutputData($requestUrl, $cookieFile, $requestOption);
-$page2 = getOutputData($requestUrl.'admin?page=2', $cookieFile, $requestOption);
-$page3 = getOutputData($requestUrl.'admin?page=3', $cookieFile, $requestOption);
-$outputData = array_merge($page1, $page2, $page3);
+echo "Start creating QR code.\n";
 
-if($f = fopen('output.csv', 'w')){
-    foreach($outputData as $line){
-        fwrite($f, implode($line, ',') . ",\n");
+echo "1.\n";
+$requestOption['data'] = 'http://www.giants.jp/top.html';
+$getData = requestData($requestUrl, 'GET', $requestOption);
+outputImage($getData, 'giants');
+
+echo "2.\n";
+$requestOption['data'] = 'https://www.amazon.co.jp/dp/B01BHPEC9G';
+$getData = requestData($requestUrl, 'GET', $requestOption);
+outputImage($getData, 'amazon');
+
+echo "3.\n";
+$requestOption['data'] = 'http://www.cosme.net/product/product_id/10023860/top';
+$getData = requestData($requestUrl, 'GET', $requestOption);
+outputImage($getData, 'cosme');
+
+echo "End.\n";
+
+function requestData($url, $method, $option = null) {
+
+    if ($option) {
+        $url .= '?' . http_build_query($option);
     }
-}
-fclose($f);
 
-function requestData($url, $method, $cookieFile, $option = null) {
     $curl = curl_init() ;
     curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_HEADER, true);
@@ -41,12 +48,6 @@ function requestData($url, $method, $cookieFile, $option = null) {
     curl_setopt($curl, CURLOPT_TIMEOUT, 30);
     curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
-    curl_setopt($curl, CURLOPT_COOKIEFILE, $cookieFile);
-    curl_setopt($curl, CURLOPT_COOKIEJAR, $cookieFile);
-
-    if ($option) {
-        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($option));
-    }
 
     $response1 = curl_exec($curl);
     $response2 = curl_getinfo($curl);
@@ -61,24 +62,30 @@ function requestData($url, $method, $cookieFile, $option = null) {
     return substr($response1, $response2['header_size']);
 }
 
-function changeHtmlToXml($html) {
-    $domDocument = new DOMDocument();
-    @$domDocument->loadHTML($html);
-    $xmlString = $domDocument->saveXML();
+function outputImage($data, $fileName) {
 
-    return simplexml_load_string($xmlString);
-}
+    $path = './img';
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_buffer($finfo, $data);
+    finfo_close($finfo);
 
-function getOutputData($url, $cookieFile, $requestOption) {
-    $postData = requestData($url, 'POST', $cookieFile, $requestOption);
-    $postData = changeHtmlToXml($postData);
-    $outputData = [];
-    foreach($postData->body->div[1]->div->div->table->tr as $tr){
-        if (isset($tr->td)) {
-            $outputData[] = array_map(function($td) {
-                return '"' . $td . '"';
-            }, (array) $tr->td);
-        }
+    $extensionList = [
+        'gif' => 'image/gif',
+        'jpg' => 'image/jpeg',
+        'png' => 'image/png'
+    ];
+
+    if(!$extension = array_search($mimeType, $extensionList, true)){
+        return;
     }
-    return $outputData;
+
+    if(!file_exists($path)){
+        mkdir($path);
+    }
+
+    if ($f = fopen($path . '/' . $fileName . '.' . $extension, 'w')) {
+        fwrite($f, $data);
+    }
+    fclose($f);
 }
+
