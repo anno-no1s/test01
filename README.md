@@ -1,8 +1,8 @@
-## ���s�R�}���h
+## 実行コマンド
 `php get.php`
 
-## ���ʏo�̓t�@�C��
-png�`����QR�R�[�h�摜��img�z���ɏo�͂��܂��B
+## 結果出力ファイル
+png形式のQRコード画像をimg配下に出力します。
 - giants.png
 - amazon.png
 - cosme.png
