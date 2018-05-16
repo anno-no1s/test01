@@ -1,17 +1,17 @@
-## ŠO•”ƒ‰ƒCƒuƒ‰ƒŠ‚ÌƒCƒ“ƒXƒg[ƒ‹
-`npm install`
+## å¤–éƒ¨ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
+`npm i`
 
-## twitter‚Ö‚Ìtokenİ’è
-index.jsƒtƒ@ƒCƒ‹“à‚Ì‰º‹L‚Ìƒ\[ƒXƒR[ƒh‚É•K—v‚Èî•ñ‚ğİ’è‚µ‚Ä‚­‚¾‚³‚¢B
-`
+## twitterã¸ã®tokenè¨­å®š
+index.jsãƒ•ã‚¡ã‚¤ãƒ«å†…ã®ä¸‹è¨˜ã®ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰ã«å¿…è¦ãªæƒ…å ±ã‚’è¨­å®šã—ã¦ãã ã•ã„ã€‚
+```
 const consumerKey = '';       // CONSUMER_KEY
 const consumerSecret = '';    // CONSUMER_SECRET
 const accessTokenKey = '';    // ACCESS_TOKE
 const accessTokenSecret = ''; // ACCESS_TOKEN_SECRET
-`
+```
 
-## ÀsƒRƒ}ƒ“ƒh
+## å®Ÿè¡Œã‚³ãƒãƒ³ãƒ‰
 `node index.js`
 
-## Œ‹‰Êo—Íƒtƒ@ƒCƒ‹
-‰æ‘œ‚ğimg”z‰º‚Éo—Í‚µ‚Ü‚·B
+## çµæœå‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«
+ç”»åƒã‚’imgé…ä¸‹ã«å‡ºåŠ›ã—ã¾ã™ã€‚
