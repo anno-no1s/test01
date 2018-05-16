@@ -30,11 +30,12 @@ searchTweet();
 function searchTweet() {
   const params = {
     q: 'JustinBieber filter:images exclude:retweets',
-    count: 20
+    count: 20,
+    include_entities: true
   };
   client.get('search/tweets', params) 
     .then(function (tweets) {
-      let imageUrls = [];
+      const imageUrls = [];
       tweets.statuses.forEach(function (tweet) {
         const media = tweet.entities.media;
         if (media && media[0].media_url && imageUrls.indexOf(media[0].media_url) === -1) {
