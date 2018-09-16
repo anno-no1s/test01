@@ -1,68 +1,31 @@
 /**************************************************
 
-	2018年5月テスト 問1プログラム
+	2018年8月テスト 問1プログラム
 
 **************************************************/
 
-const fs = require('fs');
-const path = require('path');
-const request = require('request');
-const twitter = require('twitter');
-const url = require('url');
+const {google} = require('googleapis');
 
-// 各情報を設定してください。
-const consumerKey = '';       // CONSUMER_KEY
-const consumerSecret = '';    // CONSUMER_SECRET
-const accessTokenKey = '';    // ACCESS_TOKE
-const accessTokenSecret = ''; // ACCESS_TOKEN_SECRET
+const apiKey = '';
 
-console.log('Start!');
-
-const client = new twitter({
-  consumer_key: consumerKey,
-  consumer_secret: consumerSecret,
-  access_token_key: accessTokenKey,
-  access_token_secret: accessTokenSecret
+const sheets = google.sheets({
+  version: 'v4',
+  auth   : apiKey,
 });
 
-searchTweet();
-
-function searchTweet() {
-  const params = {
-    q: 'JustinBieber filter:images exclude:retweets',
-    count: 20,
-    include_entities: true
-  };
-  client.get('search/tweets', params) 
-    .then(function (tweets) {
-      const imageUrls = [];
-      tweets.statuses.forEach(function (tweet) {
-        const media = tweet.entities.media;
-        if (media && media[0].media_url && imageUrls.indexOf(media[0].media_url) === -1) {
-          imageUrls.push(media[0].media_url);
-        }
-      });
-      for(let i = 0; i < 10; i++){
-        saveImage(imageUrls[i], i);
-      }
-    })
-    .then(function (response) {
-      console.log('End!');
-    })
-    .catch(function (error) {
-      console.log(error);
+sheets.spreadsheets.values.get({
+  spreadsheetId: '11BCnspCt2Mut3nhc4WMY6CYTd0zF9C3eCzsk1AEpKLM',
+  range        : 'A1:E6',
+}, (err, res) => {
+  if (err) {
+    return console.log('The API returned an error: ' + err);
+  }
+  const rows = res.data.values;
+  if (rows.length) {
+    rows.map((row) => {
+      console.log(`\'${row[0]}\',\'${row[1]}\',\'${row[2]}\',\'${row[3]}\',\'${row[4]}\',`);
     });
-}
-
-function saveImage(imageUrl, imageName) {
-  const parsedUrl = url.parse(imageUrl);
-  const ext = path.extname(parsedUrl.pathname);
-  request(
-    {method: 'GET', url: imageUrl, encoding: null},
-    function (error, response, body) {
-      if (!error && response.statusCode === 200) {
-        fs.writeFileSync('img/'+imageName+ext, body, 'binary');
-      }
-    }
-  );
-}
+  } else {
+    console.log('No data found.');
+  }
+});

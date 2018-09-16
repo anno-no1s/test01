@@ -1,16 +1,8 @@
 {
-  "name": "201805test01",
+  "name": "test01",
   "version": "1.0.0",
-  "description": "test01",
+  "description": "`npm install`",
   "main": "index.js",
-  "dependencies": {
-    "fs": "0.0.1-security",
-    "path": "^0.12.7",
-    "request": "^2.85.0",
-    "twitter": "^1.7.1",
-    "url": "^0.11.0"
-  },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
