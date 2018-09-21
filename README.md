@@ -1,12 +1,13 @@
-## �O�����C�u�����̃C���X�g�[��
+## 外部ライブラリのインストール
 `npm install`
 
-## API KEY��ݒ�
-index.js�t�@�C�����̉��L�̃\�[�X�R�[�h�ɕK�v�ȏ���ݒ肵�Ă��������B
+## API KEYを設定
+index.jsファイル内の下記のソースコードに必要な情報を設定してください。
+
 `
 const apiKey = '';
 `
 
-## ���s�R�}���h
+## 実行コマンド
 `node index.js`
 
